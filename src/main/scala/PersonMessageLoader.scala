@@ -2,16 +2,14 @@ import config.AppConfig.{bootstrapServers, peopleFileName, topic}
 import model.IngestionMessage
 import service.{KafkaProducerService, PersonService}
 import zio._
-import zio.json.{DecoderOps, EncoderOps}
+import zio.json.DecoderOps
 
 import scala.io.Source
 
 object PersonMessageLoader extends ZIOAppDefault {
 
   private def readJsonFile: ZIO[Any, Throwable, String] =
-    ZIO.acquireReleaseWith(ZIO.attempt(Source.fromResource(peopleFileName)))(source => ZIO.succeed(source.close())){
-      source => ZIO.attempt(source.getLines().mkString("\n"))
-    }
+    ZIO.acquireReleaseWith(ZIO.attempt(Source.fromResource(peopleFileName)))(source => ZIO.succeed(source.close()))(source => ZIO.attempt(source.getLines().mkString("\n")))
 
   private val app = for {
     peopleService <- ZIO.service[PersonService]

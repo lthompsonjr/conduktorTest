@@ -1,6 +1,7 @@
 package model
 
-import zio.json.{DeriveJsonDecoder, JsonDecoder}
+import zio.json.DeriveJsonDecoder
+import zio.json.JsonDecoder
 
 case class IngestionMessage(ctRoot: List[PersonMessage])
 

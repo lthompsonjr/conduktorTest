@@ -1,6 +1,7 @@
 package model
 
-import zio.json.{DeriveJsonCodec, JsonCodec}
+import zio.json.DeriveJsonCodec
+import zio.json.JsonCodec
 
 case class AddressView(street: String, town: String, postcode: String)
 object AddressView {
