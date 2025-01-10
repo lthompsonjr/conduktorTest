@@ -15,7 +15,7 @@ object PersonMessageLoader extends ZIOAppDefault {
     peopleService <- ZIO.service[PersonService]
     content <- readJsonFile
     ingestionMessage <- ZIO.fromEither(content.fromJson[IngestionMessage])
-    _ <- peopleService.publishRecords(bootstrapServers, topic, ingestionMessage)
+    _ <- peopleService.publishRecords(topic, ingestionMessage)
   } yield ()
 
   override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = app.provide(KafkaProducerService.layer, PersonService.layer)

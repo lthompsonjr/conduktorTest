@@ -1,6 +1,5 @@
 package api
 
-import config.AppConfig.bootstrapServers
 import config.AppConfig.defaultNumberOfRecordsToRetrieve
 import service.KafkaConsumerService
 import service.PersonService
@@ -37,7 +36,6 @@ object GetPeopleRoute {
           (for {
             personService <- ZIO.service[PersonService]
             personRecords <- personService.getRecords(
-              bootstrapServers,
               topic,
               offset,
               count

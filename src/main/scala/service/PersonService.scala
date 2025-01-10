@@ -25,13 +25,11 @@ import zio.stream.ZStream
 @accessible
 trait PersonService {
   def getRecords(
-      bootstrapServers: String,
       topic: String,
       offset: Int,
       count: Int
   ): ZIO[KafkaConsumerService, Serializable, List[PersonMessage]]
   def publishRecords(
-      bootstrapServers: String,
       topic: String,
       ingestionMessage: IngestionMessage
   ): ZIO[KafkaProducerService, Throwable, Unit]
@@ -39,7 +37,6 @@ trait PersonService {
 
 final case class PersonServiceLive() extends PersonService {
   override def getRecords(
-      bootstrapServers: String,
       topic: String,
       offset: Int,
       count: Int
@@ -68,7 +65,7 @@ final case class PersonServiceLive() extends PersonService {
     ZIO.acquireReleaseWith(for {
       consumerService <- ZIO.service[KafkaConsumerService]
       _ <- ZIO.logInfo("creating consumer")
-      consumer <- consumerService.make(bootstrapServers, personConsumerGroupId)
+      consumer <- consumerService.make(personConsumerGroupId)
       _ <- ZIO.logInfo("consumer created")
     } yield consumer)(consumer => (ZIO.attempt(consumer.close()) *> ZIO.logInfo("closing consumer")).orDie) { consumer =>
       for {
@@ -86,12 +83,11 @@ final case class PersonServiceLive() extends PersonService {
   }
 
   override def publishRecords(
-      bootstrapServers: String,
       topic: String,
       ingestionMessage: IngestionMessage
   ): ZIO[KafkaProducerService, Throwable, Unit] = for {
     producerService <- ZIO.service[KafkaProducerService]
-    producer <- producerService.make(bootstrapServers)
+    producer <- producerService.make
     records = ingestionMessage.ctRoot.map(message => new ProducerRecord[String, String](topic, message._id, message.toJson))
     count <- Ref.make(0)
     _ <- ZIO.foreachDiscard(records)(record =>
@@ -105,6 +101,5 @@ final case class PersonServiceLive() extends PersonService {
 }
 
 object PersonService {
-  val layer: ULayer[PersonService] = ZLayer
-    .fromFunction(PersonServiceLive.apply _)
+  val layer: ULayer[PersonService] = ZLayer.fromFunction(PersonServiceLive.apply _)
 }
